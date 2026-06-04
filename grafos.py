@@ -84,14 +84,71 @@ mapa_telecom = {
     ]
 }
 
-def busca_dfs(grafo, inicio, objetivo): 
-    return
+def busca_dfs(grafo, inicio, objetivo):
+    pilha = [(inicio, [inicio], 0)]
+    visitados = set()
+    
+    while pilha:
+        no_atual, caminho, custo = pilha.pop()
+
+        if no_atual == objetivo:
+            return caminho, custo
+            
+        if no_atual not in visitados:
+            visitados.add(no_atual)
+            for vizinho, distancia in grafo[no_atual]:
+                if vizinho not in visitados:
+                    pilha.append((vizinho, caminho + [vizinho], custo + distancia))
+    return [], 0
 
 def busca_bfs(grafo, inicio, objetivo):
-    return
+    fila = collections.deque([(inicio, [inicio], 0)])
+    visitados = set()
+
+    while fila:
+        no_atual, caminho, custo = fila.popleft()
+        if no_atual == objetivo:
+            return caminho, custo
+            
+        if no_atual not in visitados:
+            visitados.add(no_atual)
+            for vizinho, distancia in grafo[no_atual]:
+                if vizinho not in visitados:
+                    fila.append((vizinho, caminho + [vizinho], custo + distancia))
+    return [], 0
+
+def obter_heuristica(no_atual, objetivo):
+    bairro_atual = no_atual[:3]
+    bairro_destino = objetivo[:3]
+    if bairro_atual == bairro_destino:
+        return 100
+    proximidade = {
+        'TRV': {'CTR': 2000, 'NAV': 4000, 'LAR': 8000},
+        'CTR': {'TRV': 2000, 'NAV': 1500, 'LAR': 6000},
+        'NAV': {'TRV': 4000, 'CTR': 1500, 'LAR': 4500},
+        'LAR': {'TRV': 8000, 'CTR': 6000, 'NAV': 4500}
+    }
+    return proximidade.get(bairro_atual, {}).get(bairro_destino, 5000)
 
 def busca_greedy(grafo, inicio, objetivo):
-    return
+    lista_prioridade = [(inicio, [inicio], 0)]
+    visitados = set()
+
+    while lista_prioridade:
+        lista_prioridade.sort(key=lambda x: obter_heuristica(x[0], objetivo), reverse=True)
+        no_atual, caminho, custo = lista_prioridade.pop()
+
+        if no_atual == objetivo:
+            return caminho, custo
+            
+        if no_atual not in visitados:
+            visitados.add(no_atual)
+            
+            for vizinho, distancia in grafo[no_atual]:
+                if vizinho not in visitados:
+                    lista_prioridade.append((vizinho, caminho + [vizinho], custo + distancia))
+                    
+    return [], 0
 
 primeira_partida = 'TRV-314-04'
 partida_atual = primeira_partida
@@ -130,10 +187,9 @@ while True:
     else:
         print("CTO inválida. Por favor, tente novamente.")
 
-print("\n="*60)
 print("RELATÓRIO FINAL DA JORNADA DE TRABALHO")
 print("="*60)
 print(f"Rota DFS: {' -> '.join(caminho_total_dfs)} | Distância Total: {distancia_total_dfs} metros")
-print(f"Rota BFS: {' -> '.join(caminho_total_bfs)} | Distância Total: {distancia_total_bfs} metros")
-print(f"Rota Greedy: {' -> '.join(caminho_total_greedy)} | Distância Total: {distancia_total_greedy} metros")
+print(f"\nRota BFS: {' -> '.join(caminho_total_bfs)} | Distância Total: {distancia_total_bfs} metros")
+print(f"\nRota Greedy: {' -> '.join(caminho_total_greedy)} | Distância Total: {distancia_total_greedy} metros")
 
